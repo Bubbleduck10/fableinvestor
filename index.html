@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fable Investor — the AI treasury that cannot rug you</title>
+<meta name="description" content="An autonomous AI agent manages this token's treasury. It can burn, lock, or hold — selling and transferring do not exist in its code. Every decision logged on-chain.">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --bg2: #10131a;
+    --card: #141821;
+    --border: #232937;
+    --text: #d7dce6;
+    --muted: #8b93a5;
+    --amber: #f5b942;
+    --green: #4ade80;
+    --red: #f87171;
+    --blue: #60a5fa;
+    --mono: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, sans-serif;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 16px 0;
+    position: sticky; top: 0;
+    background: rgba(10,12,16,.92);
+    backdrop-filter: blur(8px);
+    z-index: 10;
+  }
+  header .wrap { display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-family: var(--mono); font-weight: 700; font-size: 1.05rem; color: var(--amber); text-decoration: none; }
+  .logo span { color: var(--text); }
+  nav a { color: var(--muted); text-decoration: none; margin-left: 22px; font-size: .9rem; }
+  nav a:hover { color: var(--text); }
+
+  .hero { padding: 90px 0 60px; text-align: center; }
+  .hero .badge {
+    display: inline-block; font-family: var(--mono); font-size: .75rem;
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 4px 14px; color: var(--amber); margin-bottom: 26px;
+    background: var(--bg2);
+  }
+  .hero .badge.live { color: var(--green); border-color: rgba(74,222,128,.4); }
+  .ca-box {
+    max-width: 620px; margin: 26px auto 0;
+    background: var(--bg2); border: 1px solid rgba(74,222,128,.35); border-radius: 12px;
+    padding: 16px 18px; text-align: left;
+  }
+  .ca-box .ca-label { font-family: var(--mono); font-size: .7rem; color: var(--green); text-transform: uppercase; letter-spacing: .12em; }
+  .ca-box .ca-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+  .ca-box code { font-family: var(--mono); font-size: .85rem; color: var(--text); word-break: break-all; flex: 1; min-width: 200px; }
+  .ca-box button, .ca-box a.btn {
+    font-family: var(--mono); font-size: .74rem; cursor: pointer; text-decoration: none;
+    background: var(--card); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 12px; white-space: nowrap;
+  }
+  .ca-box button:hover, .ca-box a.btn:hover { border-color: var(--green); }
+  .hero h1 { font-size: clamp(1.9rem, 5vw, 3.1rem); line-height: 1.15; letter-spacing: -.02em; }
+  .hero h1 em { font-style: normal; color: var(--amber); }
+  .hero p.sub { color: var(--muted); max-width: 620px; margin: 22px auto 0; font-size: 1.08rem; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 48px 0 0; }
+  .stat {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px 12px;
+  }
+  .stat .num { font-family: var(--mono); font-size: 1.5rem; color: var(--amber); }
+  .stat .lbl { color: var(--muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; margin-top: 4px; }
+
+  section { padding: 64px 0; border-top: 1px solid var(--border); }
+  h2 { font-size: 1.6rem; margin-bottom: 8px; letter-spacing: -.01em; }
+  .kicker { font-family: var(--mono); color: var(--amber); font-size: .78rem; text-transform: uppercase; letter-spacing: .14em; margin-bottom: 10px; }
+  .lead { color: var(--muted); max-width: 680px; margin-bottom: 34px; }
+
+  .moves { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .move { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; }
+  .move .ico { font-size: 1.6rem; }
+  .move h3 { font-family: var(--mono); margin: 10px 0 6px; font-size: 1.05rem; }
+  .move p { color: var(--muted); font-size: .92rem; }
+  .move.burn h3 { color: var(--red); }
+  .move.lock h3 { color: var(--blue); }
+  .move.hold h3 { color: var(--green); }
+
+  .guarantee { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 30px; }
+  .guarantee ul { list-style: none; margin-top: 18px; }
+  .guarantee li { padding: 9px 0 9px 30px; position: relative; color: var(--muted); }
+  .guarantee li::before { content: "✕"; position: absolute; left: 0; color: var(--red); font-family: var(--mono); }
+  .guarantee li.can::before { content: "✓"; color: var(--green); }
+  .guarantee li strong { color: var(--text); }
+  pre {
+    background: #0d1017; border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px; overflow-x: auto; font-family: var(--mono); font-size: .82rem;
+    line-height: 1.7; margin-top: 22px; color: var(--muted);
+  }
+  pre .c { color: #566078; } pre .k { color: var(--amber); } pre .f { color: var(--blue); }
+
+  .status-banner {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: .82rem;
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 16px; margin-bottom: 22px; color: var(--muted);
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--amber); animation: pulse 1.8s infinite; }
+  @keyframes pulse { 50% { opacity: .35; } }
+
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; min-width: 560px; }
+  th { text-align: left; color: var(--muted); font-family: var(--mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  td { padding: 14px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  td.time { font-family: var(--mono); color: var(--muted); font-size: .8rem; white-space: nowrap; }
+  .pill { font-family: var(--mono); font-size: .74rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+  .pill.BURN { background: rgba(248,113,113,.12); color: var(--red); }
+  .pill.LOCK { background: rgba(96,165,250,.12); color: var(--blue); }
+  .pill.HOLD { background: rgba(74,222,128,.12); color: var(--green); }
+  .tag-dry { font-family: var(--mono); font-size: .68rem; color: var(--amber); border: 1px solid var(--amber); border-radius: 4px; padding: 1px 6px; margin-left: 8px; white-space: nowrap; }
+  td.reason { color: var(--muted); font-size: .87rem; }
+  td.tx a { color: var(--blue); font-family: var(--mono); font-size: .8rem; }
+  td.tx span { color: #566078; font-family: var(--mono); font-size: .8rem; }
+
+  footer { border-top: 1px solid var(--border); padding: 40px 0 60px; color: var(--muted); font-size: .85rem; }
+  footer .links a { color: var(--muted); margin-right: 20px; text-decoration: none; font-family: var(--mono); font-size: .82rem; }
+  footer .links a:hover { color: var(--text); }
+  footer .disclaimer { margin-top: 18px; font-size: .78rem; color: #566078; max-width: 720px; }
+
+  @media (max-width: 720px) {
+    .stats, .moves { grid-template-columns: 1fr; }
+    nav a { margin-left: 14px; }
+    th:nth-child(4), td:nth-child(4) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="logo" href="#">fable<span>investor</span>.xyz</a>
+    <nav>
+      <a href="#tech">The Tech</a>
+      <a href="#log">Transaction Log</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="hero">
+    <div class="badge" id="hero-badge">● PRE-LAUNCH — AGENT IN DRY-RUN</div>
+    <h1>An AI runs this treasury.<br>It <em>cannot</em> rug you.</h1>
+    <p class="sub">
+      An autonomous agent powered by Claude Fable 5 manages the token treasury 24/7.
+      It has exactly three moves — burn, lock, hold. Selling and transferring
+      don't exist in its code. Every decision is published below with an
+      on-chain receipt.
+    </p>
+    <div class="ca-box" id="ca-box" hidden>
+      <div class="ca-label">● Live — contract address</div>
+      <div class="ca-row">
+        <code id="ca-text"></code>
+        <button id="ca-copy" type="button">copy</button>
+        <a class="btn" id="ca-pump" href="#" target="_blank" rel="noopener">pump.fun ↗</a>
+        <a class="btn" id="ca-scan" href="#" target="_blank" rel="noopener">solscan ↗</a>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num" id="stat-burned">—</div><div class="lbl">Tokens burned</div></div>
+      <div class="stat"><div class="num" id="stat-locked">—</div><div class="lbl">Tokens locked</div></div>
+      <div class="stat"><div class="num" id="stat-decisions">—</div><div class="lbl">Decisions logged</div></div>
+    </div>
+  </div>
+
+  <section id="tech">
+    <div class="kicker">The Tech</div>
+    <h2>Three moves. No exceptions.</h2>
+    <p class="lead">
+      Every cycle, the agent reads the chain — supply, treasury balance, liquidity,
+      holders — and Claude Fable 5 chooses one action. Each one can only make the
+      supply picture better for holders, never worse.
+    </p>
+    <div class="moves">
+      <div class="move burn">
+        <div class="ico">🔥</div>
+        <h3>BURN</h3>
+        <p>Permanently destroys treasury tokens. Total supply goes down, forever. Verifiable on Solscan.</p>
+      </div>
+      <div class="move lock">
+        <div class="ico">🔒</div>
+        <h3>LOCK</h3>
+        <p>Time-locks treasury tokens in an on-chain locker. They can't move until the unlock date — and can only return to the treasury.</p>
+      </div>
+      <div class="move hold">
+        <div class="ico">✋</div>
+        <h3>HOLD</h3>
+        <p>Does nothing. The agent is told doing nothing is often the right call — no forced action, no theatrics.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">The Guarantee</div>
+    <h2>Don't trust the dev. Verify the dev can't hurt you.</h2>
+    <div class="guarantee" style="margin-top:28px">
+      <ul>
+        <li><strong>Cannot sell.</strong> There is no swap function in the codebase.</li>
+        <li><strong>Cannot transfer.</strong> There is no send function in the codebase. Not to a wallet, a KOL, an exchange, or the dev.</li>
+        <li><strong>Cannot be talked into it.</strong> The AI's decision passes through a single tool whose schema only permits BURN, LOCK, or HOLD — it can't even name another action.</li>
+        <li class="can"><strong>Can burn</strong> — capped per cycle by hard-coded guardrails the model can't override.</li>
+        <li class="can"><strong>Can lock</strong> — self-only: locked tokens can only ever release back to the treasury.</li>
+        <li class="can"><strong>Can hold</strong> — and usually should.</li>
+      </ul>
+      <pre><span class="c">// executor.ts — the only file that signs anything.</span>
+<span class="c">// This is the agent's ENTIRE action surface:</span>
+
+<span class="k">export</span> {
+  <span class="f">burn</span>,   <span class="c">// createBurnCheckedInstruction — supply down, forever</span>
+  <span class="f">lock</span>,   <span class="c">// self-only on-chain time-lock</span>
+};
+
+<span class="c">// There is no transfer(). There is no swap(). There is no sell().</span>
+<span class="c">// A stolen key or a jailbroken prompt changes nothing —</span>
+<span class="c">// the worst case is tokens getting burned. Read the code yourself.</span></pre>
+    </div>
+  </section>
+
+  <section id="log">
+    <div class="kicker">Receipts</div>
+    <h2>Transaction log</h2>
+    <p class="lead">Every decision the agent makes — including doing nothing — is logged here with its reasoning and transaction signature.</p>
+    <div class="status-banner">
+      <div class="dot"></div>
+      <span id="status-text">Loading…</span>
+    </div>
+    <div class="table-scroll">
+    <table>
+      <thead>
+        <tr><th>Time (UTC)</th><th>Action</th><th>Amount</th><th>Agent reasoning</th><th>Tx</th></tr>
+      </thead>
+      <tbody id="log-body">
+        <tr><td colspan="5" style="color:var(--muted);font-family:var(--mono);font-size:.85rem">Loading log…</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="links">
+      <a href="#" title="coming soon">X / Twitter — soon</a>
+      <a href="#" title="coming soon">GitHub — soon</a>
+      <a href="https://solscan.io/account/8MNP83Wm8ui7spR1LZ3kX5q9uq2VAHFbbCE5Ev56sBvw" target="_blank" rel="noopener">Treasury wallet ↗</a>
+    </div>
+    <p class="disclaimer">
+      Fable Investor is an autonomous-agent experiment, not an investment product.
+      Nothing here is financial advice and no outcome — including price — is promised.
+      The agent's only guarantees are the ones enforced in code: it cannot sell or
+      transfer the treasury. Digital assets are volatile; never risk what you can't lose.
+    </p>
+  </div>
+</footer>
+
+<script>
+(async () => {
+  // ---- config ----
+  const WALLET = "8MNP83Wm8ui7spR1LZ3kX5q9uq2VAHFbbCE5Ev56sBvw";
+  // browser-friendly endpoints, tried in order (api.mainnet-beta 403s web origins)
+  const RPC_URLS = ["https://solana-rpc.publicnode.com", "https://api.mainnet-beta.solana.com"];
+  const PUMP_PROGRAM = "6EF8rrecthR9DCZJZBQr6DjJmDeqtTe504Wo7cbFAKTn";
+  const POLL_MS = 60_000;
+
+  const fmt = (iso) => iso ? new Date(iso).toISOString().slice(0, 16).replace("T", " ") : "—";
+  const statusEl = document.getElementById("status-text");
+  const body = document.getElementById("log-body");
+  let live = false;
+
+  // ---- transaction log (log.json) ----
+  let log = { entries: [] };
+  try {
+    const res = await fetch("log.json", { cache: "no-store" });
+    log = await res.json();
+
+    statusEl.textContent = `PRE-LAUNCH — agent running in dry-run mode. Entries below are simulation output, not on-chain transactions. Updated ${fmt(log.updated)}`;
+
+    const entries = log.entries || [];
+    document.getElementById("stat-decisions").textContent = entries.length;
+    const sum = (a) => entries.some(e => e.action === a && !e.dryRun) ? "live" : "0";
+    document.getElementById("stat-burned").textContent = sum("BURN");
+    document.getElementById("stat-locked").textContent = sum("LOCK");
+
+    body.innerHTML = entries.length ? entries.map(e => `
+      <tr>
+        <td class="time">${fmt(e.time)}</td>
+        <td><span class="pill ${e.action}">${e.action}</span>${e.dryRun ? '<span class="tag-dry">DRY RUN</span>' : ""}</td>
+        <td class="time">${e.amount || "—"}</td>
+        <td class="reason">${e.reasoning || ""}</td>
+        <td class="tx">${e.tx ? `<a href="https://solscan.io/tx/${e.tx}" target="_blank" rel="noopener">${e.tx.slice(0, 8)}…</a>` : "<span>—</span>"}</td>
+      </tr>`).join("")
+      : '<tr><td colspan="5" style="color:var(--muted)">No decisions yet.</td></tr>';
+  } catch {
+    statusEl.textContent = "Log unavailable — check back soon.";
+    body.innerHTML = '<tr><td colspan="5" style="color:var(--muted)">Could not load log.json</td></tr>';
+  }
+
+  // ---- LIVE state ----
+  function goLive(mint, opts = {}) {
+    if (live || !mint) return;
+    live = true;
+    if (!opts.test) { try { localStorage.setItem("fable_mint", mint); } catch {} }
+
+    const badge = document.getElementById("hero-badge");
+    badge.textContent = "● LIVE ON PUMP.FUN";
+    badge.classList.add("live");
+
+    document.getElementById("ca-text").textContent = mint;
+    document.getElementById("ca-pump").href = `https://pump.fun/coin/${mint}`;
+    document.getElementById("ca-scan").href = `https://solscan.io/token/${mint}`;
+    document.getElementById("ca-box").hidden = false;
+
+    statusEl.textContent = `LIVE — token ${mint.slice(0, 4)}…${mint.slice(-4)} · treasury ${WALLET.slice(0, 4)}…${WALLET.slice(-4)} · watching for agent decisions`;
+    document.title = "Fable Investor — LIVE on pump.fun";
+  }
+
+  document.getElementById("ca-copy").addEventListener("click", async (e) => {
+    try {
+      await navigator.clipboard.writeText(document.getElementById("ca-text").textContent);
+      e.target.textContent = "copied!";
+      setTimeout(() => { e.target.textContent = "copy"; }, 1500);
+    } catch {}
+  });
+
+  // ---- mint detection ----
+  // A pump.fun launch tx = WALLET is the fee payer (accountKeys[0]), touches the
+  // pump.fun program, and carries a second signer: the brand-new mint keypair.
+  // The fee-payer check matters: without it, anyone dusting the wallet with a
+  // pump token would false-positive as our launch.
+  async function rpc(method, params) {
+    let lastErr;
+    for (const url of RPC_URLS) {
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+        });
+        if (!res.ok) throw new Error(`RPC ${res.status}`);
+        return (await res.json()).result;
+      } catch (e) { lastErr = e; }
+    }
+    throw lastErr;
+  }
+
+  async function detectMint() {
+    const sigs = (await rpc("getSignaturesForAddress", [WALLET, { limit: 25 }])) || [];
+    for (const s of sigs) {
+      if (s.err) continue;
+      const tx = await rpc("getTransaction", [s.signature, { encoding: "jsonParsed", maxSupportedTransactionVersion: 0 }]);
+      const keys = tx?.transaction?.message?.accountKeys || [];
+      if (keys[0]?.pubkey !== WALLET) continue;
+      if (!keys.some(k => k.pubkey === PUMP_PROGRAM)) continue;
+      const mintKey = keys.find(k => k.signer && k.pubkey !== WALLET);
+      if (mintKey) return mintKey.pubkey;
+    }
+    return null;
+  }
+
+  // priority: ?ca= test override → log.json mint → cached → live chain scan
+  const testCa = new URLSearchParams(location.search).get("ca");
+  if (testCa) { goLive(testCa, { test: true }); return; }
+  if (log.mint) { goLive(log.mint); return; }
+  try {
+    const cached = localStorage.getItem("fable_mint");
+    if (cached) { goLive(cached); return; }
+  } catch {}
+
+  async function scan() {
+    if (live) return;
+    try { goLive(await detectMint()); } catch (err) { console.warn("mint scan failed:", err.message); }
+  }
+  await scan();
+  if (!live) setInterval(scan, POLL_MS);
+})();
+</script>
+
+</body>
+</html>
