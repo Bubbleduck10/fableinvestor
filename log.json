@@ -1,9 +1,17 @@
 {
-  "status": "pre-launch",
-  "wallet": "8MNP83Wm8ui7spR1LZ3kX5q9uq2VAHFbbCE5Ev56sBvw",
-  "mint": null,
-  "updated": "2026-07-01T21:00:00Z",
+  "status": "live",
+  "wallet": "DbV8HftUZtQc2WGa1yLdXDfTm4nwHsNmgUBLg4LWFYJP",
+  "mint": "DUY6MBnwPT5gdna3cFW8sZZYxRNKEvCzhyqCnTkDpump",
+  "updated": "2026-07-02T02:00:00Z",
   "entries": [
+    {
+      "time": "2026-07-02T01:05:17Z",
+      "action": "HOLD",
+      "amount": null,
+      "reasoning": "Token launched on pump.fun. Treasury wallet created — awaiting token allocation before the agent takes over management. First real decision cycle begins once the treasury is funded.",
+      "tx": null,
+      "dryRun": true
+    },
     {
       "time": "2026-07-01T20:00:00Z",
       "action": "HOLD",
