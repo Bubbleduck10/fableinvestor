@@ -121,6 +121,7 @@
   .pill.BURN { background: rgba(248,113,113,.12); color: var(--red); }
   .pill.LOCK { background: rgba(96,165,250,.12); color: var(--blue); }
   .pill.HOLD { background: rgba(74,222,128,.12); color: var(--green); }
+  .pill.NOTE { background: rgba(245,185,66,.12); color: var(--amber); }
   .tag-dry { font-family: var(--mono); font-size: .68rem; color: var(--amber); border: 1px solid var(--amber); border-radius: 4px; padding: 1px 6px; margin-left: 8px; white-space: nowrap; }
   td.reason { color: var(--muted); font-size: .87rem; }
   td.tx a { color: var(--blue); font-family: var(--mono); font-size: .8rem; }
@@ -153,13 +154,14 @@
 <main class="wrap">
 
   <div class="hero">
-    <div class="badge" id="hero-badge">● PRE-LAUNCH — AGENT IN DRY-RUN</div>
+    <div class="badge" id="hero-badge">● MIGRATING TO ROBINHOOD CHAIN</div>
     <h1>An AI runs this treasury.<br>It <em>cannot</em> rug you.</h1>
     <p class="sub">
       An autonomous agent powered by Claude Fable 5 manages the token treasury 24/7.
       It has exactly three moves — burn, lock, hold. Selling and transferring
       don't exist in its code. Every decision is published below with an
-      on-chain receipt.
+      on-chain receipt. Now relaunching on Robinhood Chain, the Ethereum L2
+      that went live July 1 — the original Solana contract is no longer official.
     </p>
     <div class="ca-box" id="ca-box" hidden>
       <div class="ca-label">● Live — contract address</div>
@@ -189,7 +191,7 @@
       <div class="move burn">
         <div class="ico">🔥</div>
         <h3>BURN</h3>
-        <p>Permanently destroys treasury tokens. Total supply goes down, forever. Verifiable on Solscan.</p>
+        <p>Permanently destroys treasury tokens. Total supply goes down, forever. Verifiable on-chain.</p>
       </div>
       <div class="move lock">
         <div class="ico">🔒</div>
@@ -257,7 +259,7 @@
     <div class="links">
       <a href="https://x.com/FableInvestor" target="_blank" rel="noopener">X / Twitter ↗</a>
       <a href="#" title="coming soon">GitHub — soon</a>
-      <a href="https://solscan.io/account/DbV8HftUZtQc2WGa1yLdXDfTm4nwHsNmgUBLg4LWFYJP" target="_blank" rel="noopener">Treasury wallet ↗</a>
+      <a href="https://robinhoodchain.blockscout.com/address/0xFf3103200510DD7216dd6877A027df1d8D8FFD28" target="_blank" rel="noopener">Treasury wallet ↗</a>
     </div>
     <p class="disclaimer">
       Fable Investor is an autonomous-agent experiment, not an investment product.
@@ -271,7 +273,7 @@
 <script>
 (async () => {
   // ---- config ----
-  const WALLET = "DbV8HftUZtQc2WGa1yLdXDfTm4nwHsNmgUBLg4LWFYJP";
+  const WALLET = "0xFf3103200510DD7216dd6877A027df1d8D8FFD28"; // Robinhood Chain (Ethereum L2)
   // browser-friendly endpoints, tried in order (api.mainnet-beta 403s web origins)
   const RPC_URLS = ["https://solana-rpc.publicnode.com", "https://api.mainnet-beta.solana.com"];
   // classic bonding-curve program + the newer one observed on 2026 launches
@@ -292,7 +294,11 @@
     const res = await fetch("log.json", { cache: "no-store" });
     log = await res.json();
 
-    statusEl.textContent = `PRE-LAUNCH — agent running in dry-run mode. Entries below are simulation output, not on-chain transactions. Updated ${fmt(log.updated)}`;
+    statusEl.textContent = log.status === "migrating"
+      ? `MIGRATING — relaunching on Robinhood Chain (Ethereum L2). The original Solana contract is no longer official. New treasury: ${WALLET.slice(0, 6)}…${WALLET.slice(-4)}. Updated ${fmt(log.updated)}`
+      : `PRE-LAUNCH — agent running in dry-run mode. Entries below are simulation output, not on-chain transactions. Updated ${fmt(log.updated)}`;
+    // drop any Solana-era cached mint so returning visitors don't see stale LIVE state
+    if (log.status !== "live") { try { localStorage.removeItem("fable_mint"); } catch {} }
 
     const entries = log.entries || [];
     document.getElementById("stat-decisions").textContent = entries.length;
@@ -389,8 +395,11 @@
     if (live) return;
     try { goLive(await detectMint()); } catch (err) { console.warn("mint scan failed:", err.message); }
   }
-  await scan();
-  if (!live) setInterval(scan, POLL_MS);
+  // Solana-only scanner — does not apply to an EVM (0x) treasury
+  if (!WALLET.startsWith("0x")) {
+    await scan();
+    if (!live) setInterval(scan, POLL_MS);
+  }
 })();
 </script>
 

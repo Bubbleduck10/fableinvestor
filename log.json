@@ -1,9 +1,18 @@
 {
-  "status": "live",
-  "wallet": "DbV8HftUZtQc2WGa1yLdXDfTm4nwHsNmgUBLg4LWFYJP",
-  "mint": "DUY6MBnwPT5gdna3cFW8sZZYxRNKEvCzhyqCnTkDpump",
-  "updated": "2026-07-02T02:00:00Z",
+  "status": "migrating",
+  "wallet": "0xFf3103200510DD7216dd6877A027df1d8D8FFD28",
+  "chain": "robinhood-chain",
+  "mint": null,
+  "updated": "2026-07-02T02:45:00Z",
   "entries": [
+    {
+      "time": "2026-07-02T02:45:00Z",
+      "action": "NOTE",
+      "amount": null,
+      "reasoning": "Project is migrating to Robinhood Chain, the Ethereum L2 that went live July 1. The Solana pump.fun contract (DUY6…pump) is no longer the official token — do not buy it expecting treasury backing. New treasury address: 0xFf3103200510DD7216dd6877A027df1d8D8FFD28. Relaunch details will be posted here and on X before anything goes live.",
+      "tx": null,
+      "dryRun": false
+    },
     {
       "time": "2026-07-02T01:05:17Z",
       "action": "HOLD",
